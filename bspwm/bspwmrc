@@ -27,4 +27,4 @@ alacritty -e fastfetch
 redshift -PO 4500 &
 
 picom &
-dusnt &
+dunst &

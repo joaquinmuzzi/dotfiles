@@ -1,57 +1,61 @@
 
 [colors]
-background = #282A2E
-background-alt = #373B41
-foreground = #8AB4F8
-primary = #64B5F6
-secondary = #42A5F5
-alert = #A54242
-disabled = #707880
+background = #1E222A
+background-alt = #262B35
+foreground = #C8D3F5
+primary = #82AAFF
+secondary = #65BCFF
+alert = #FF757F
+disabled = #5B6376
 
 [bar/bar1]
 width = 100%
-height = 24pt
-line-size = 24pt
+height = 30
+radius = 8
+line-size = 2
 
 background = ${colors.background}
 foreground = ${colors.foreground}
 
+border-size = 0
+border-color = ${colors.background}
 
-
-border-size = 4pt
-border-color = #00000000
-
-padding-left = 0
+padding-left = 1
 padding-right = 1
 
 module-margin = 1
 
-separator = |
-separator-foreground = ${colors.disabled}
+separator =
+separator-foreground = ${colors.background}
 
 font-0 = monospace:size=11;3
-font-1 = JetBrainsMono Nerd Font:size=11;3
+font-1 = JetBrainsMono Nerd Font:size=12;3
 
 modules-left = xworkspaces xwindow
-modules-right = pulseaudio xkeyboard memory cpu temperature battery wlan eth date
+modules-center = date
+modules-right = pulseaudio memory cpu temperature battery wlan eth
 
 cursor-click = pointer
 cursor-scroll = ns-resize
 
 enable-ipc = true
+
 [module/xworkspaces]
 type = internal/xworkspaces
 
 label-active = %name%
 label-active-background = ${colors.background-alt}
-# label-active-underline= ${colors.primary}
+label-active-foreground = ${colors.primary}
+label-active-underline = ${colors.primary}
 label-active-padding = 1
 
 label-occupied = %name%
+label-occupied-foreground = ${colors.foreground}
 label-occupied-padding = 1
 
 label-urgent = %name%
 label-urgent-background = ${colors.alert}
+label-urgent-foreground = ${colors.background}
 label-urgent-padding = 1
 
 label-empty = %name%
@@ -60,7 +64,8 @@ label-empty-padding = 1
 
 [module/xwindow]
 type = internal/xwindow
-label = %title:0:80:...%
+format = <label>
+label = %{F#65BCFF}%{T2}󰖯%{T-}%{F-}  %title:0:65:...%
 
 [module/filesystem]
 type = internal/fs
@@ -75,39 +80,39 @@ label-unmounted-foreground = ${colors.disabled}
 
 [module/pulseaudio]
 type = custom/script
-
 exec = ~/.config/polybar/volume.sh
 interval = 1
+
 format = <label>
-label = %{F#64B5F6}%{T2}%{T-}%{F-}  %output%
+label = %{F#82AAFF}%{T2}%{T-}%{F-}  %output%
 
 
 [module/memory]
 type = internal/memory
 interval = 5
-label = %{F#64B5F6}%{T2}󰍛%{T-}%{F-}  %percentage_used:2%%
+label = %{F#82AAFF}%{T2}󰍛%{T-}%{F-}  %percentage_used:2%%
 
 [module/cpu]
 type = internal/cpu
 interval = 5
-label = %{F#64B5F6}%{T2}%{T-}%{F-}  %percentage:2%%
+label = %{F#82AAFF}%{T2}%{T-}%{F-}  %percentage:2%%
 
 [network-base]
 type = internal/network
 interval = 5
 format-connected = <label-connected>
 format-disconnected = <label-disconnected>
-label-disconnected = %{F#64B5F6}%{T2}󰤮%{T-}%{F-}  %{F#707880}disconnected
+label-disconnected = %{F#5B6376}%{T2}󰤮%{T-}%{F-}  disconnected
 
 [module/wlan]
 inherit = network-base
 interface-type = wireless
-label-connected = %{F#64B5F6}%{T2}%{T-}%{F-}  %essid% %local_ip%
+label-connected = %{F#82AAFF}%{T2}%{T-}%{F-}  %essid% %local_ip%
 
 [module/eth]
 inherit = network-base
 interface-type = wired
-label-connected = %{F#64B5F6}%{T2}󰈀%{T-}%{F-}  %{F#64B5F6}%ifname%%{F-} %local_ip%
+label-connected = %{F#82AAFF}%{T2}󰈀%{T-}%{F-}  %local_ip%
 
 [module/date]
 type = internal/date
@@ -115,8 +120,8 @@ interval = 1
 
 date = %d-%m-%Y %H:%M:%S
 
-label = %{F#64B5F6}%{T2}%{T-}%{F-}  %date%
-label-foreground = ${colors.primary}
+label = %{F#65BCFF}%{T2}%{T-}%{F-}  %date%
+label-foreground = ${colors.secondary}
 
 [module/battery]
 type = internal/battery
@@ -131,17 +136,19 @@ format-charging = <label-charging>
 format-discharging = <label-discharging>
 format-full = <label-full>
 
-label-charging = %{F#64B5F6}%{T2}%{T-}%{F-}  %percentage%%
-label-discharging = %{F#64B5F6}%{T2}%{T-}%{F-}  %percentage%% (%time%)
-label-low = %{F#A54242}%{T2}%{T-}%{F-}  LOW BAT %percentage%%
-label-full = %{F#64B5F6}%{T2}%{T-}%{F-}  FULL
+label-charging = %{F#82AAFF}%{T2}%{T-}%{F-}  %percentage%%
+label-discharging = %{F#82AAFF}%{T2}%{T-}%{F-}  %percentage%% (%time%)
+label-low = %{F#FF757F}%{T2}%{T-}%{F-}  LOW BAT %percentage%%
+label-full = %{F#82AAFF}%{T2}%{T-}%{F-}  FULL
 
 [module/temperature]
 type = internal/temperature
 
 interval = 5
 format = <label>
-label = %{F#64B5F6}%{T2}%{T-}%{F-}  %temperature-c%
+label = %{F#82AAFF}%{T2}%{T-}%{F-}  %temperature-c%
+format-warn = <label-warn>
+label-warn = %{F#FF757F}%{T2}%{T-}%{F-}  %temperature-c%
 
 thermal-zone = 0
 

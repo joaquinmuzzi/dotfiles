@@ -2,9 +2,9 @@
 [colors]
 background = #282A2E
 background-alt = #373B41
-foreground = #C5C8C6
-primary = #F0C674
-secondary = #8ABEB7
+foreground = #8AB4F8
+primary = #64B5F6
+secondary = #42A5F5
 alert = #A54242
 disabled = #707880
 
@@ -30,19 +30,15 @@ separator = |
 separator-foreground = ${colors.disabled}
 
 font-0 = monospace:size=11;3
+font-1 = JetBrainsMono Nerd Font:size=11;3
 
 modules-left = xworkspaces xwindow
-modules-right = systray pulseaudio xkeyboard memory cpu temperature battery wlan eth date
+modules-right = pulseaudio xkeyboard memory cpu temperature battery wlan eth date
 
 cursor-click = pointer
 cursor-scroll = ns-resize
 
 enable-ipc = true
-[module/systray]
-type = internal/tray
-
-format-margin = 8pt
-tray-spacing = 16pt
 [module/xworkspaces]
 type = internal/xworkspaces
 
@@ -64,7 +60,7 @@ label-empty-padding = 1
 
 [module/xwindow]
 type = internal/xwindow
-label = %title:0:35:...%
+label = %title:0:80:...%
 
 [module/filesystem]
 type = internal/fs
@@ -72,7 +68,7 @@ interval = 25
 
 mount-0 = /
 
-label-mounted = %{F#F0C674}%mountpoint%%{F-} %percentage_used%%
+label-mounted = %{F#64B5F6}%mountpoint%%{F-} %percentage_used%%
 
 label-unmounted = %mountpoint% not mounted
 label-unmounted-foreground = ${colors.disabled}
@@ -82,47 +78,36 @@ type = custom/script
 
 exec = ~/.config/polybar/volume.sh
 interval = 1
-
-format-volume-prefix = "VOL "
-format-volume-prefix-foreground = ${colors.primary}
-format-volume = <label-volume>
-
-label-volume = %percentage%%
-
-label-muted = muted
-label-muted-foreground = ${colors.disabled}
+format = <label>
+label = %{F#64B5F6}%{T2}%{T-}%{F-}  %output%
 
 
 [module/memory]
 type = internal/memory
 interval = 5
-format-prefix = "RAM "
-format-prefix-foreground = ${colors.primary}
-label = %percentage_used:2%%
+label = %{F#64B5F6}%{T2}󰍛%{T-}%{F-}  %percentage_used:2%%
 
 [module/cpu]
 type = internal/cpu
 interval = 5
-format-prefix = "CPU "
-format-prefix-foreground = ${colors.primary}
-label = %percentage:2%%
+label = %{F#64B5F6}%{T2}%{T-}%{F-}  %percentage:2%%
 
 [network-base]
 type = internal/network
 interval = 5
 format-connected = <label-connected>
 format-disconnected = <label-disconnected>
-label-disconnected = %{F#F0C674}%ifname%%{F#707880} disconnected
+label-disconnected = %{F#64B5F6}%{T2}󰤮%{T-}%{F-}  %{F#707880}disconnected
 
 [module/wlan]
 inherit = network-base
 interface-type = wireless
-label-connected = %{F#F0C674}%ifname%%{F-} %essid% %local_ip%
+label-connected = %{F#64B5F6}%{T2}%{T-}%{F-}  %essid% %local_ip%
 
 [module/eth]
 inherit = network-base
 interface-type = wired
-label-connected = %{F#F0C674}%ifname%%{F-} %local_ip%
+label-connected = %{F#64B5F6}%{T2}󰈀%{T-}%{F-}  %{F#64B5F6}%ifname%%{F-} %local_ip%
 
 [module/date]
 type = internal/date
@@ -130,7 +115,7 @@ interval = 1
 
 date = %d-%m-%Y %H:%M:%S
 
-label = %date%
+label = %{F#64B5F6}%{T2}%{T-}%{F-}  %date%
 label-foreground = ${colors.primary}
 
 [module/battery]
@@ -146,15 +131,17 @@ format-charging = <label-charging>
 format-discharging = <label-discharging>
 format-full = <label-full>
 
-label-charging = %{F#F0C674}BAT%{F-} %percentage%%
-label-discharging = %{F#F0C674}BAT%{F-} %percentage%% (%time%)
-label-low = %{F#A54242}LOW BAT%{F-} %percentage%%
-label-full = %{F#F0C674}BAT%{F-} FULL
+label-charging = %{F#64B5F6}%{T2}%{T-}%{F-}  %percentage%%
+label-discharging = %{F#64B5F6}%{T2}%{T-}%{F-}  %percentage%% (%time%)
+label-low = %{F#A54242}%{T2}%{T-}%{F-}  LOW BAT %percentage%%
+label-full = %{F#64B5F6}%{T2}%{T-}%{F-}  FULL
 
 [module/temperature]
 type = internal/temperature
 
 interval = 5
+format = <label>
+label = %{F#64B5F6}%{T2}%{T-}%{F-}  %temperature-c%
 
 thermal-zone = 0
 

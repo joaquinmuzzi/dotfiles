@@ -4,6 +4,13 @@ xsetroot -cursor_name left_ptr &
 
 pgrep -x sxhkd >/dev/null || sxhkd &
 
+touchpad_name="ELAN0672:00 04F3:3187 Touchpad"
+touchpad_id="$(xinput list --id-only "$touchpad_name" 2>/dev/null)"
+if [ -n "$touchpad_id" ]; then
+	xinput reattach "$touchpad_id" 2 >/dev/null
+	xinput enable "$touchpad_id"
+fi
+
 bspc monitor -d I II III IV V VI VII VIII IX X
 
 $HOME/.config/polybar/launch.sh &

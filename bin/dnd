@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if ! command -v dunstctl >/dev/null 2>&1; then
+  echo "Error: dunstctl no está disponible. Instale dunst."
+  exit 1
+fi
+
+action="${1:-toggle}"
+
+get_status() {
+  dunstctl is-paused
+}
+
+case "$action" in
+  on)
+    dunstctl set-paused true >/dev/null
+    echo "DND activado (notificaciones pausadas)."
+    ;;
+  off)
+    dunstctl set-paused false >/dev/null
+    echo "DND desactivado (notificaciones activas)."
+    ;;
+  toggle)
+    if [[ "$(get_status)" == "true" ]]; then
+      dunstctl set-paused false >/dev/null
+      echo "DND desactivado (notificaciones activas)."
+    else
+      dunstctl set-paused true >/dev/null
+      echo "DND activado (notificaciones pausadas)."
+    fi
+    ;;
+  status)
+    if [[ "$(get_status)" == "true" ]]; then
+      echo "DND: ON"
+    else
+      echo "DND: OFF"
+    fi
+    ;;
+  *)
+    echo "Uso: dnd [on|off|toggle|status]"
+    exit 2
+    ;;
+esac

@@ -1,0 +1,6 @@
+{
+  "files.associations": {
+    "dunstrc": "ini",
+    "**/dunst/dunstrc": "ini"
+  }
+}

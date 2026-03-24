@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+TLP_CONF="/etc/tlp.conf"
+
+if ! command -v tlp >/dev/null 2>&1; then
+  echo "Error: tlp no está instalado."
+  exit 1
+fi
+
+if [[ ! -f "$TLP_CONF" ]]; then
+  echo "Error: no se encontró $TLP_CONF"
+  exit 1
+fi
+
+backup_file() {
+  local backup="${TLP_CONF}.bak.$(date +%Y%m%d-%H%M%S)"
+  sudo cp "$TLP_CONF" "$backup"
+  echo "Backup creado en: $backup"
+}
+
+set_or_add() {
+  local key="$1"
+  local value="$2"
+
+  if grep -Eq "^[#[:space:]]*${key}=" "$TLP_CONF"; then
+    sudo sed -i -E "s|^[#[:space:]]*${key}=.*|${key}=${value}|" "$TLP_CONF"
+  else
+    echo "${key}=${value}" | sudo tee -a "$TLP_CONF" >/dev/null
+  fi
+}
+
+backup_file
+
+set_or_add "TLP_DEFAULT_MODE" "BAT"
+set_or_add "CPU_SCALING_GOVERNOR_ON_BAT" "performance"
+set_or_add "CPU_ENERGY_PERF_POLICY_ON_BAT" "performance"
+set_or_add "CPU_BOOST_ON_BAT" "1"
+set_or_add "PLATFORM_PROFILE_ON_BAT" "performance"
+set_or_add "SCHED_POWERSAVE_ON_BAT" "0"
+set_or_add "WIFI_PWR_ON_BAT" "off"
+
+sudo tlp bat
+
+echo "Modo rendimiento aplicado."
+echo "Comprobá el estado con: sudo tlp-stat -s"

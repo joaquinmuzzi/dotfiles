@@ -1,0 +1,248 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly DOTFILES_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+readonly POLYBAR_LAUNCH="$DOTFILES_DIR/polybar/launch.sh"
+
+readonly -a WHITELIST=("alacritty" "kitty" "bspwm" "sxhkd" "discord")
+readonly -a UI_TARGETS=("picom" "dunst" "polybar" "feh" "nitrogen")
+readonly -a BG_TARGETS=("spotify" "slack")
+
+killed_processes=()
+
+print_usage() {
+  cat <<'EOF'
+Uso:
+  purge-ram            Purga procesos no esenciales y limpia memoria
+  purge-ram --restore  Relanza polybar, picom y nitrogen
+EOF
+}
+
+bytes_to_mib() {
+  local bytes="$1"
+  awk -v b="$bytes" 'BEGIN { printf "%.1f", b/1024/1024 }'
+}
+
+get_mem_available_bytes() {
+  awk '/^MemAvailable:/ {print $2 * 1024}' /proc/meminfo
+}
+
+is_whitelisted() {
+  local name="$1"
+  for safe in "${WHITELIST[@]}"; do
+    if [[ "$name" == "$safe" ]]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
+record_killed() {
+  local name="$1"
+  for existing in "${killed_processes[@]}"; do
+    [[ "$existing" == "$name" ]] && return 0
+  done
+  killed_processes+=("$name")
+}
+
+terminate_name() {
+  local name="$1"
+
+  if is_whitelisted "$name"; then
+    return 0
+  fi
+
+  if pgrep -x "$name" >/dev/null 2>&1; then
+    pkill -TERM -x "$name" || true
+    sleep 0.3
+    pkill -KILL -x "$name" || true
+    record_killed "$name"
+  fi
+}
+
+terminate_pid() {
+  local pid="$1"
+  local name="$2"
+
+  if is_whitelisted "$name"; then
+    return 0
+  fi
+
+  kill -TERM "$pid" 2>/dev/null || true
+  sleep 0.2
+  kill -KILL "$pid" 2>/dev/null || true
+  record_killed "$name"
+}
+
+terminate_electron_except_discord() {
+  while IFS='|' read -r pid comm args; do
+    [[ -z "$pid" ]] && continue
+
+    local lower
+    lower="$(printf '%s %s' "$comm" "$args" | tr '[:upper:]' '[:lower:]')"
+
+    if [[ "$lower" == *"discord"* ]]; then
+      continue
+    fi
+
+    if [[ "$lower" == *"electron"* ]]; then
+      terminate_pid "$pid" "$comm"
+    fi
+  done < <(ps -eo pid=,comm=,args= | awk '{pid=$1; comm=$2; $1=""; $2=""; sub(/^  */, ""); printf "%s|%s|%s\n", pid, comm, $0}')
+}
+
+show_memory_snapshot() {
+  local title="$1"
+  echo
+  echo "=== $title ==="
+  free -h
+}
+
+run_privileged_memory_cleanup() {
+  sudo -v
+
+  sync
+  echo "Solicitando drop de caches..."
+  echo 3 | sudo tee /proc/sys/vm/drop_caches >/dev/null
+
+  echo "Solicitando compactación de memoria..."
+  sudo sysctl -w vm.compact_memory=1 >/dev/null
+}
+
+handle_zram_or_swap() {
+  if [[ -n "$(awk '$1 ~ /^\/dev\/zram/ {print $1}' /proc/swaps)" ]]; then
+    echo "ZRAM activo, mostrando estado:"
+    zramctl || true
+    return 0
+  fi
+
+  local mem_avail swap_total swap_free swap_used required_margin
+  mem_avail="$(awk '/^MemAvailable:/ {print $2 * 1024}' /proc/meminfo)"
+  swap_total="$(awk '/^SwapTotal:/ {print $2 * 1024}' /proc/meminfo)"
+  swap_free="$(awk '/^SwapFree:/ {print $2 * 1024}' /proc/meminfo)"
+  swap_used=$((swap_total - swap_free))
+  required_margin=$((512 * 1024 * 1024))
+
+  if (( swap_total == 0 )); then
+    echo "No hay swap físico configurado."
+    return 0
+  fi
+
+  if (( swap_used == 0 )); then
+    echo "Swap activo pero sin uso; no hace falta reciclar."
+    return 0
+  fi
+
+  if (( mem_avail > (swap_used + required_margin) )); then
+    echo "RAM suficiente detectada; reciclando swap físico..."
+    sudo swapoff -a
+    sudo swapon -a
+  else
+    echo "RAM insuficiente para reciclar swap de forma segura; se omite."
+  fi
+}
+
+launch_if_missing() {
+  local proc_name="$1"
+  shift
+
+  if pgrep -x "$proc_name" >/dev/null 2>&1; then
+    echo "$proc_name ya está corriendo."
+    return 0
+  fi
+
+  nohup "$@" >/dev/null 2>&1 &
+  echo "$proc_name relanzado."
+}
+
+restore_ui() {
+  echo "Restaurando servicios UI..."
+
+  if [[ -x "$POLYBAR_LAUNCH" ]]; then
+    nohup "$POLYBAR_LAUNCH" >/dev/null 2>&1 &
+    echo "polybar relanzado con launch.sh"
+  elif command -v polybar >/dev/null 2>&1; then
+    launch_if_missing "polybar" polybar
+  else
+    echo "polybar no disponible para restaurar."
+  fi
+
+  if command -v picom >/dev/null 2>&1; then
+    launch_if_missing "picom" picom --daemon
+  else
+    echo "picom no disponible para restaurar."
+  fi
+
+  if command -v nitrogen >/dev/null 2>&1; then
+    nohup nitrogen --restore >/dev/null 2>&1 &
+    echo "nitrogen restaurado."
+  else
+    echo "nitrogen no disponible para restaurar."
+  fi
+}
+
+main() {
+  local mode="purge"
+
+  if [[ "${1:-}" == "--restore" ]]; then
+    mode="restore"
+  elif [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+    print_usage
+    exit 0
+  elif [[ $# -gt 0 ]]; then
+    print_usage
+    exit 2
+  fi
+
+  if [[ "$mode" == "restore" ]]; then
+    restore_ui
+    exit 0
+  fi
+
+  local before after recovered
+  before="$(get_mem_available_bytes)"
+
+  show_memory_snapshot "Memoria antes de la purga"
+
+  echo
+  echo "Finalizando procesos UI no esenciales..."
+  for proc in "${UI_TARGETS[@]}"; do
+    terminate_name "$proc"
+  done
+
+  echo "Finalizando apps en segundo plano..."
+  for proc in "${BG_TARGETS[@]}"; do
+    terminate_name "$proc"
+  done
+
+  echo "Finalizando apps Electron (excepto discord)..."
+  terminate_electron_except_discord
+
+  run_privileged_memory_cleanup
+  handle_zram_or_swap
+
+  sleep 1
+
+  after="$(get_mem_available_bytes)"
+  recovered=$((after - before))
+
+  show_memory_snapshot "Memoria después de la purga"
+
+  echo
+  echo "=== Resumen de purga ==="
+  if (( ${#killed_processes[@]} > 0 )); then
+    printf 'Procesos finalizados: %s\n' "${killed_processes[*]}"
+  else
+    echo "No se finalizó ningún proceso objetivo."
+  fi
+
+  if (( recovered >= 0 )); then
+    echo "Memoria recuperada (MemAvailable): +$(bytes_to_mib "$recovered") MiB"
+  else
+    echo "Cambio de memoria (MemAvailable): $(bytes_to_mib "$recovered") MiB"
+  fi
+}
+
+main "$@"

@@ -1,0 +1,15 @@
+#!/bin/sh
+# Toggle touchscreen
+# finds the touchscreen ID
+padid="ELAN901C:00 04F3:2C71"
+
+# finds if its enabled
+if [ $(xinput list-props "$padid" | grep "Device Enabled" | tail -c 2) == 1 ]; then
+    # disable it
+    xinput disable "$padid" & 
+    dunstify "touchscreen off" -t 2000
+else
+    # or enable it
+    xinput enable "$padid" & 
+    dunstify "touchscreen on" -t 2000
+fi

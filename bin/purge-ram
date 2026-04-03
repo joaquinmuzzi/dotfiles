@@ -100,8 +100,24 @@ show_memory_snapshot() {
   free -h
 }
 
+fix_rapl_permissions() {
+  local rapl_root="/sys/class/powercap"
+
+  if [[ ! -d "$rapl_root" ]]; then
+    echo "powercap no disponible; se omite fix RAPL."
+    return 0
+  fi
+
+  echo "Corrigiendo permisos RAPL para GameMode..."
+  # gamemoded necesita leer energy_uj para monitorear y ajustar el TDP del CPU
+  sudo find "$rapl_root" -name "energy_uj" -exec chmod a+r {} \;
+  echo "Permisos RAPL aplicados."
+}
+
 run_privileged_memory_cleanup() {
   sudo -v
+
+  fix_rapl_permissions
 
   sync
   echo "Solicitando drop de caches..."

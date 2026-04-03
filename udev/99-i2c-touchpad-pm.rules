@@ -1,0 +1,22 @@
+# Fix: ELAN I2C touchpad lag (~500ms) when headphones are connected
+#
+# Root cause: The Intel SerialIO I2C controller (00:15.0) hosting the ELAN0672
+# touchpad uses runtime power management (auto-suspend). On ThinkPad X1 Carbon
+# Gen 9 (Tiger Lake), the SOF audio driver triggers I2C activity on this same
+# bus when headphone jack state changes. After each audio I2C transaction, the
+# controller suspends aggressively. The next touchpad event then has to wait
+# ~400-500ms for the controller to resume before data can be read.
+# The TrackPoint is unaffected because it's on PS/2 (i8042), not I2C.
+#
+# Fix: Keep the I2C SerialIO controller always-on (no auto-suspend).
+# Intel Tiger Lake I2C SerialIO0: vendor 0x8086, device 0xa0e8
+#
+# Also requires RUNTIME_PM_DENYLIST="00:15.0" in /etc/tlp.conf
+# (otherwise TLP overrides this back to "auto" on battery)
+
+# Rule 1: PCI SerialIO I2C controller (Intel Tiger Lake 00:15.0)
+ACTION=="add", SUBSYSTEM=="pci", ATTR{vendor}=="0x8086", ATTR{device}=="0xa0e8", ATTR{power/control}="on"
+
+# Rule 2: i2c_designware platform child device (has its own PM, also needs "on")
+# KERNELS matches the PCI parent to avoid affecting other i2c_designware instances
+ACTION=="add", SUBSYSTEM=="platform", DRIVER=="i2c_designware", KERNELS=="0000:00:15.0", ATTR{power/control}="on"

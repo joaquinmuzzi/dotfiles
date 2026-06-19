@@ -1,0 +1,27 @@
+# Editor
+*.swp
+*.swo
+*~
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build
+*.log
+*.bak
+*.bak.*
+
+# Package managers
+node_modules/
+__pycache__/
+*.pyc
+
+# Secrets
+.env
+*.key
+*.pem
+
+# Neovim
+nvim/lazy-lock.json

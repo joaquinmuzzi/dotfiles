@@ -1,0 +1,64 @@
+[window]
+opacity = 0.85
+
+padding.x = 10
+padding.y = 10
+
+dynamic_padding = true
+
+decorations = "Full"
+decorations_theme_variant = "Dark"
+
+[env]
+VIRTUAL_ENV_DISABLE_PROMPT = "0"
+
+[scrolling]
+history = 10000
+multiplier = 3
+
+[font]
+
+normal.family = "JetBrainsMono Nerd Font"
+bold.family = "JetBrainsMono Nerd Font"
+italic.family = "JetBrainsMono Nerd Font"
+
+size = 8.0
+
+[cursor]
+style = { shape = "Block", blinking = "On" }
+blink_interval = 700
+unfocused_hollow = true
+
+[selection]
+save_to_clipboard = true
+
+[colors.primary]
+background = "#1e222a"
+foreground = "#c8d3f5"
+
+[colors.normal]
+black = "#1e222a"
+red = "#ff757f"
+green = "#c3e88d"
+yellow = "#ffc777"
+blue = "#82aaff"
+magenta = "#c099ff"
+cyan = "#86e1fc"
+white = "#c8d3f5"
+
+[colors.bright]
+black = "#5b6376"
+red = "#ff98a4"
+green = "#d7f5aa"
+yellow = "#ffd391"
+blue = "#a5c4ff"
+magenta = "#cfb5ff"
+cyan = "#acebff"
+white = "#e3e9ff"
+
+[colors.cursor]
+text = "#1e222a"
+cursor = "#82aaff"
+
+[mouse]
+hide_when_typing = true

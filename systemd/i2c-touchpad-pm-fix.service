@@ -1,0 +1,15 @@
+[Unit]
+Description=Disable runtime PM on Intel SerialIO I2C controller (touchpad lag fix)
+# The ELAN touchpad sits on i2c_designware.0 under PCI 00:15.0.
+# TLP sets this to auto-suspend on battery, causing ~500ms lag on the touchpad
+# when the SOF audio driver triggers I2C activity (e.g., headphone plug/unplug).
+# No explicit ordering against tlp.service to avoid dependency cycles.
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/bin/sh -c 'echo on > /sys/devices/pci0000:00/0000:00:15.0/power/control'
+ExecStart=/bin/sh -c 'echo on > /sys/devices/pci0000:00/0000:00:15.0/i2c_designware.0/power/control'
+
+[Install]
+WantedBy=multi-user.target

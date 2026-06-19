@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# Hace que el sistema no haga nada al cerrar la tapa
+
+set -euo pipefail
+
+CONF="/etc/systemd/logind.conf"
+
+if [[ ! -f "$CONF" ]]; then
+  echo "Error: no se encontró $CONF"
+  exit 1
+fi
+
+sudo sed -i -E 's/^[#[:space:]]*HandleLidSwitch=.*/HandleLidSwitch=ignore/' "$CONF"
+
+if ! grep -q "^HandleLidSwitch=ignore" "$CONF"; then
+  echo "HandleLidSwitch=ignore" | sudo tee -a "$CONF" >/dev/null
+fi
+
+sudo systemctl kill -s HUP systemd-logind
+
+echo "Tapa: no hace nada al cerrar."

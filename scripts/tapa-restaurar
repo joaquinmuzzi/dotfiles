@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# Restaura el comportamiento por defecto al cerrar la tapa (suspender)
+
+set -euo pipefail
+
+CONF="/etc/systemd/logind.conf"
+
+if [[ ! -f "$CONF" ]]; then
+  echo "Error: no se encontró $CONF"
+  exit 1
+fi
+
+sudo sed -i -E 's/^[#[:space:]]*HandleLidSwitch=.*/HandleLidSwitch=suspend/' "$CONF"
+
+if ! grep -q "^HandleLidSwitch=suspend" "$CONF"; then
+  echo "HandleLidSwitch=suspend" | sudo tee -a "$CONF" >/dev/null
+fi
+
+sudo systemctl kill -s HUP systemd-logind
+
+echo "Tapa: suspende al cerrar (comportamiento por defecto)."

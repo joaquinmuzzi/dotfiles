@@ -1,0 +1,20 @@
+[manager]
+ratio = [1, 2, 5]
+
+[preview]
+# Intentamos 'cover' para que ocupe todo el espacio disponible
+image_fit = "cover"
+image_filter = "nearest"
+max_width = 1500
+max_height = 1500
+
+[plugin]
+previewers = [
+    # Aquí le decimos que use el plugin de imagen con dimensiones forzadas
+    { mime = "image/*", run = "image" },
+]
+
+[tasks]
+# Aumentamos la memoria para el procesamiento de imágenes
+image_alloc = 536870912
+image_bound = [ 0, 0 ]

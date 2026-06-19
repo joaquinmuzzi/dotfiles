@@ -1,0 +1,11 @@
+[user]
+	email = joaquin.hola.muzzi@gmail.com
+	name = joaquinmuzzi
+[diff]
+	tool = vscode
+[difftool "vscode"]
+	cmd = "code --wait --diff  "
+[core]
+	editor = code --wait
+[init]
+	defaultBranch = main

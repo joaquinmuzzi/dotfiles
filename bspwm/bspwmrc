@@ -1,0 +1,36 @@
+#! /bin/sh
+
+xsetroot -cursor_name left_ptr &
+
+pgrep -x sxhkd >/dev/null || sxhkd &
+
+touchpad_name="ELAN0672:00 04F3:3187 Touchpad"
+touchpad_id="$(xinput list --id-only "$touchpad_name" 2>/dev/null)"
+if [ -n "$touchpad_id" ]; then
+	xinput reattach "$touchpad_id" 2 >/dev/null
+	xinput enable "$touchpad_id"
+fi
+
+$HOME/.config/bspwm/monitors.sh
+
+pgrep -f "$HOME/.config/polybar/scripts/battery_alert.sh" >/dev/null || $HOME/.config/polybar/scripts/battery_alert.sh &
+
+bspc config border_width 1
+bspc config window_gap 2
+bspc config top_padding 28
+
+bspc config split_ratio 0.52
+bspc config borderless_monocle true
+bspc config gapless_monocle true
+
+bspc rule -a Gimp desktop='^8' state=floating follow=on
+bspc rule -a Chromium desktop='^2'
+bspc rule -a mplayer2 state=floating
+bspc rule -a Kupfer.py focus=on
+bspc rule -a Screenkey manage=off
+
+alacritty -e fastfetch
+redshift -PO 4500 &
+
+picom &
+dunst &
